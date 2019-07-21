@@ -31,6 +31,16 @@ const RULES = [
       if (obj.object !== "block") return;
       let parent = document.getParent(obj.key);
 
+      // Add newline after blocks which must be separated by
+      // newlines - i.e. paragraphs, blockquotes and lists.
+      const addNewLine = (children) => {
+        if (document.getNextSibling(obj.key)) {
+          return children + "\n";
+        } else {
+          return children;
+        }
+      };
+
       switch (obj.type) {
         case "table":
           tableHeader = "";
@@ -63,16 +73,16 @@ const RULES = [
           }
           return `${children}|\n${output}`;
         case "paragraph":
-          return children;
+          return addNewLine(children);
         case "code": {
           const language = obj.getIn(["data", "language"]) || "";
-          return `\`\`\`${language}\n${children}\n\`\`\``;
+          return addNewLine(`\`\`\`${language}\n${children}\n\`\`\``);
         }
         case "code-line":
           return `${children}\n`;
         case "block-quote":
           // Handle multi-line blockquotes
-          return children.split("\n").map(text => `> ${text}`).join("\n");
+          return addNewLine(children.split('\n').map((text) => `> ${text}`).join('\n'));
         case "todo-list":
         case "bulleted-list":
         case "ordered-list": {
@@ -82,7 +92,7 @@ const RULES = [
           }
 
           // nested list
-          return `\n${children.replace(/\n+$/gm, "").replace(/^/gm, "   ")}`;
+          return addNewLine(children.replace(/\n+$/gm, "").replace(/^/gm, "   "));
         }
         case "list-item": {
           switch (parent.type) {
@@ -190,7 +200,9 @@ class Markdown {
     const elements = document.nodes.map(node =>
       this.serializeNode(node, document)
     );
-    const output = elements.join("\n");
+
+    // Disallow three or more new lines in a row
+    const output = elements.join("\n").replace(/\n{3,}/g, "\n\n");
 
     // trim beginning whitespace
     return output.replace(/^\s+/g, "");

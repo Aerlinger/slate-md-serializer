@@ -62,7 +62,7 @@ test("maintains multiple empty paragraphs", () => {
 This is the first sentence
 
 
-Two empty paragraphs above
+No empty paragraphs above
 `;
   expect(getNodes(text)).toMatchSnapshot();
   assertSymmetry(text, true);
@@ -248,6 +248,16 @@ test("parses quote with newlines and marks", () => {
 `;
   expect(getNodes(text)).toMatchSnapshot();
   assertSymmetry(text, true);
+});
+
+test("parses quote with newlines and marks", () => {
+  const text = `
+> this is a *quote*
+> this is the second part of the quote
+>
+> this is the third part of the quote
+`;
+  expect(getNodes(text)).toMatchSnapshot();
 });
 
 test("quotes do not get combined", () => {
